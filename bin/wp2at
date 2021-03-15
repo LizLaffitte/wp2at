@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 
 require_relative '../lib/wp2at'
-CLI.new.call
+Wp2at::Option.new.execute(ARGV)
