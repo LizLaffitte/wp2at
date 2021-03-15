@@ -1,13 +1,13 @@
 require 'yaml'
 class Settings
-    attr_accessor :username, :at_api, :blogs, :bases
+    attr_accessor :username, :at_api
+    attr_reader :blogs
 
     def initialize(username, blogs=[], at_api = "", bases=[])
         @username = username
         @blogs = blogs
         @at_api = at_api
         @blog_count = @blogs.count
-        @bases = bases
     end
 
     def self.load
@@ -18,16 +18,14 @@ class Settings
         end
     end
 
-    def add_blog(name, blog_url)
-        self.blogs << {name: blog_url}
+    def add_blog(blog)
+        self.blogs << blog
     end
 
     def blog_count
         self.blogs.count
     end
 
-    def add_bases(name, id)
-        self.bases << {name: id}
-    end
+
     
 end
