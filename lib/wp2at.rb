@@ -3,6 +3,8 @@
 require_relative "wp2at/version"
 require_relative "wp2at/cli"
 require_relative "wp2at/settings"
+require_relative "wp2at/blog"
+require_relative "wp2at/option"
 
 module Wp2at
   class Error < StandardError; end
