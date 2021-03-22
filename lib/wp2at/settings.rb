@@ -3,12 +3,12 @@ class Settings
     attr_accessor :username, :at_api, :base
     attr_reader :blogs
 
-    def initialize(username="", blogs=[], at_api = "", base={})
-        @username = username
-        @blogs = blogs
-        @at_api = at_api
+    def initialize(settingsHash={:username=>"", :at_api=>"", :blogs=>[], :base=>{}})
+        @username = settingsHash[:username]
+        @blogs = settingsHash[:blogs]
+        @at_api = settingsHash[:at_api]
         @blog_count = @blogs.count
-        @base = base  
+        @base = settingsHash[:base]
     end
 
     def self.exists?
@@ -30,16 +30,22 @@ class Settings
         File.open("wp2at_config.yml", "w"){|file| file.write(settings.to_yaml)}
     end
 
-    def add_blog(blog)
+    def add_blog(options)
+        blog = Blog.new(options)
         self.blogs << blog
+        self.settings_save
     end
 
     def blog_count
         self.blogs.count
     end
 
-    def read_blogs
-        self.blogs.each.with_index(0){|blog, idx| puts "#{idx}. #{blog.name}" }
+    def list_blogs
+        if self.blog_count > 0  
+            self.blogs.each.with_index(1){|blog, idx| puts "#{idx}. #{blog.name}" }
+        else
+            puts "No blogs added."
+        end
     end
 
     
