@@ -2,7 +2,7 @@ class Blog
     attr_accessor :name, :url, :base_name, :base_id, :table
 
     def initialize(name, url="", base_name="", base_id="", table="")
-        puts "Add a website for #{name}:"
+        puts "Add a website for #{name}. (No trailing /)"
         url = STDIN.gets.chomp
         puts "Add a base for #{name}"
         base_name = STDIN.gets.chomp
