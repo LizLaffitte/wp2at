@@ -11,6 +11,9 @@ class Wp2at::Option
             puts options ? add_username(options) : @current_settings.username
         when "blog" 
             options ? @current_settings.add_blog(options) : @current_settings.list_blogs 
+        when "sync"
+            api = API.new(@current_settings)
+            api.list_blogs
         else
             puts "That's not an option"
         end
