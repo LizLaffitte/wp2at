@@ -8,23 +8,30 @@ class Wp2at::Option
         @current_settings = Settings.exists? ? Settings.load : Settings.new
         case command
         when "userconfig"
-            puts options ? add_username(options) : @current_settings.username
+            puts options ? @current_settings.username = options : @current_settings.username
         when "blog" 
             options ? @current_settings.add_blog(options) : @current_settings.list_blogs 
+        when "api-key"
+            puts options ? @current_settings.at_api = options : @current_settings.at_api
         when "sync"
-            api = API.new(@current_settings)
-            api.list_blogs
+            if options
+                if @current_settings.blog_count < 1
+                    puts "Add a blog by running blog with an argument of the blog name you'd like to add."
+                end
+                if @current_settings.at_api != ""
+                    api = API.new(@current_settings)
+                    api.ping(options)
+                else
+                    puts "Add an AirTable API Key by running the command api-key and passing an API key."
+                end
+            else
+                api = API.new(@current_settings)
+                api.list_blogs
+            end
         else
             puts "That's not an option"
         end
     
-    end
-
-
-    def add_username(username="")
-        @current_settings.username = username
-        @current_settings.settings_save
-        @current_settings.username
     end
 
 end
