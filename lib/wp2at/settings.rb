@@ -1,7 +1,7 @@
 require 'yaml'
 class Settings
-    attr_accessor :username, :at_api, :base
-    attr_reader :blogs
+    attr_accessor :username, :base
+    attr_reader :blogs, :at_api
 
     def initialize(settingsHash={:username=>"", :at_api=>"", :blogs=>[], :base=>{}})
         @username = settingsHash[:username]
@@ -36,13 +36,25 @@ class Settings
         self.settings_save
     end
 
+    def at_api=(key)
+        @at_api = key
+        self.settings_save
+        self.at_api
+    end
+
+    def username=(username)
+        @username = username
+        self.settings_save
+        self.username
+    end
+
     def blog_count
         self.blogs.count
     end
 
     def list_blogs
         if self.blog_count > 0  
-            self.blogs.each.with_index(1){|blog, idx| puts "#{idx}. #{blog.name}" }
+            self.blogs.each.with_index(1){|blog, idx| puts "#{idx}. #{blog.name} \n URL: #{blog.url} \n Base Name & ID: #{blog.base_name}, #{blog.base_id} \n Table Name: #{blog.table}" }
         else
             puts "No blogs added."
         end
