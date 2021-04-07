@@ -16,13 +16,19 @@ class API
 
 
     def collect_row_data
-        at_response = call_at
-        
-        row_data = at_response.parsed_response["records"].collect{|post| {post["id"] => post["fields"]["ID"]}}
+        row_data = []
+        offset = ""
+        loop do
+            at_response = call_at("",offset)
+            row_data.push(at_response.parsed_response["records"].collect{|post| {post["id"] => post["fields"]["ID"]}})
+            offset = at_response.parsed_response["offset"]
+            break if !at_response.parsed_response["offset"]
+        end
+        row_data.flatten
     end
 
     def call_at(params ="", offset="")
-        HTTParty.get(@@at_api + params + offset, 
+        HTTParty.get(@@at_api + "?" + params + "&offset=" + offset, 
             :headers => {
                 "Authorization" => "Bearer #{@current_settings.at_api}", 
                 "Content-Type" => "application/json"
@@ -68,7 +74,7 @@ class API
     def sync(flags)
         posts = collect_post_data()
         rows = collect_row_data
-
+        
         data =  prep_data(posts)
         
         # add_to_at(data, @@at_api)  
