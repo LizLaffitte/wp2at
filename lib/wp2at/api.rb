@@ -22,7 +22,7 @@ class API
     end
 
     def call_at(params ="", offset="")
-        HTTParty.get(@@at_api + params + offsest, 
+        HTTParty.get(@@at_api + params + offset, 
             :headers => {
                 "Authorization" => "Bearer #{@current_settings.at_api}", 
                 "Content-Type" => "application/json"
