@@ -1,5 +1,4 @@
 require 'httparty'
-require 'pry'
 class API
     attr_accessor :routes, :at_latest, :wp_latest, :total
 
@@ -16,15 +15,15 @@ class API
 
 
     def collect_row_data
-        row_data = []
+        row_data = {}
         offset = ""
         loop do
             at_response = call_at("",offset)
-            row_data.push(at_response.parsed_response["records"].collect{|post| {post["id"] => post["fields"]["ID"]}})
+            at_response.parsed_response["records"].collect{|post| row_data[post["fields"]["ID"]] = post["id"]}
             offset = at_response.parsed_response["offset"]
             break if !at_response.parsed_response["offset"]
         end
-        row_data.flatten
+        row_data
     end
 
     def call_at(params ="", offset="")
@@ -38,15 +37,17 @@ class API
     def collect_post_data
         ping_wp
         x = 1
-        resp_array = []
+        wp_posts = []
         until x > self.total
             resp = HTTParty.get(@@wp_api + "?_fields=id,title,date,link" + "&per_page=100&page=" + x.to_s)
-            resp_array.push(resp.parsed_response)
+            wp_posts.push(resp.parsed_response)
             total = resp.headers["x-wp-totalpages"].to_i
             x += 1
-            puts x
         end
-        resp_array.flatten
+        post_data = {
+            :posts => wp_posts.flatten,
+            :ids => wp_posts.flatten.collect{|post| post["id"]}
+        }       
     end
     
     def replace_space(string)
@@ -72,20 +73,27 @@ class API
         @total = resp.headers["x-wp-totalpages"].to_i
     end
     def sync(flags)
-        posts = collect_post_data()
+        post_data = collect_post_data()
         rows = collect_row_data
+        new_posts = compare_datasets(rows.keys, post_data[:ids])
+        if new_posts
+            data = prep_data(post_data[:posts].keep_if{|post| new_posts.include? post["id"]})
+            add_to_at(data, @@at_api)  
+        else
+            puts "All data up-to-date"
+        end
         
-        data =  prep_data(posts)
-        
-        # add_to_at(data, @@at_api)  
     end
 
-    def find_updates
-
+    def compare_datasets(at_arr, wp_arr)
+        new_posts = wp_arr - at_arr
+        if new_posts.count > 0 
+            new_posts
+        else
+            false
+        end
     end
 
-    def find_new_rows
-    end
 
     def add_to_at(data, at_route)
         data.each_slice(10) do |slice| 
