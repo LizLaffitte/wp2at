@@ -1,9 +1,10 @@
 require 'httparty'
+require 'pry'
 class API
     attr_accessor :routes, :at_latest, :wp_latest, :total
 
 
-    @@wp_api = "/wp-json/wp/v2/posts?_fields=id,title,date,link"
+    @@wp_api = "/wp-json/wp/v2/posts"
     @@at_api = "https://api.airtable.com/v0/"
 
     def initialize(settings, blog, flags="")
@@ -14,27 +15,30 @@ class API
     end
 
 
-    def latest_record
-        at_response = HTTParty.get(@@at_api + "?sort%5B0%5D%5Bfield%5D=ID&sort%5B0%5D%5Bdirection%5D=desc", 
-            :headers => {"Authorization" => "Bearer #{@current_settings.at_api}", "Content-Type" => "application/json"})
-        # id_array = at_response.parsed_response["records"].collect{|post| post["fields"]["ID"]}
-        # id_array
-        if at_response.parsed_response["records"].length > 0
-            @at_latest = at_response.parsed_response["records"].first["fields"]["ID"]
-        else 
-            @at_latest = "0"
-        end
+    def collect_row_data
+        at_response = call_at
+        
+        row_data = at_response.parsed_response["records"].collect{|post| {post["id"] => post["fields"]["ID"]}}
+    end
+
+    def call_at(params ="", offset="")
+        HTTParty.get(@@at_api + params + offsest, 
+            :headers => {
+                "Authorization" => "Bearer #{@current_settings.at_api}", 
+                "Content-Type" => "application/json"
+            })
     end
 
     def collect_post_data
+        ping_wp
         x = 1
         resp_array = []
         until x > self.total
-            resp = HTTParty.get(@@wp_api + "&per_page=100&page=" + x.to_s)
+            resp = HTTParty.get(@@wp_api + "?_fields=id,title,date,link" + "&per_page=100&page=" + x.to_s)
             resp_array.push(resp.parsed_response)
             total = resp.headers["x-wp-totalpages"].to_i
-            puts x
             x += 1
+            puts x
         end
         resp_array.flatten
     end
@@ -56,24 +60,25 @@ class API
         records
     end
 
-    def ping
-        resp = HTTParty.get(@@wp_api + "&per_page=100")
+    def ping_wp
+        resp = HTTParty.get(@@wp_api + "?_fields=id" + "&per_page=100")
         @wp_latest = resp.parsed_response[0]["id"]
         @total = resp.headers["x-wp-totalpages"].to_i
-        latest_record
     end
     def sync(flags)
-        ping
+        posts = collect_post_data()
+        rows = collect_row_data
+
+        data =  prep_data(posts)
         
-        if flags
-            if @wp_latest == @at_latest
-                puts "up to date"
-            end
-        else
-            posts = collect_post_data()
-            data =  prep_data(posts)
-            add_to_at(data, @@at_api)   
-        end    
+        # add_to_at(data, @@at_api)  
+    end
+
+    def find_updates
+
+    end
+
+    def find_new_rows
     end
 
     def add_to_at(data, at_route)
