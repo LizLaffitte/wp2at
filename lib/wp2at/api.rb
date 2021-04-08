@@ -1,4 +1,5 @@
 require 'httparty'
+require 'pry'
 class API
     attr_accessor :routes, :at_latest, :wp_latest, :total
 
@@ -80,6 +81,7 @@ class API
             data = prep_data(post_data[:posts].keep_if{|post| new_posts.include? post["id"]})
             add_to_at(data, @@at_api)  
         else
+            data = prep_data(post_data[:posts].keep_if{|post| post_data[:ids].include? post["id"]})
             puts "All data up-to-date"
         end
         
@@ -105,4 +107,6 @@ class API
         end
     end
 
+    def update_at(data)
+    end
 end
