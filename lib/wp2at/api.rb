@@ -1,4 +1,5 @@
 require 'httparty'
+require 'pry'
 class API
     attr_accessor :routes, :at_latest, :wp_latest, :total
 
@@ -26,7 +27,7 @@ class API
     end
 
     def call_at(params ="", offset="")
-        HTTParty.get(@@at_api + "?" + params + "&offset=" + offset, 
+       HTTParty.get(@@at_api + "?" + params + "&offset=" + offset, 
             :headers => {
                 "Authorization" => "Bearer #{@current_settings.at_api}", 
                 "Content-Type" => "application/json"
@@ -118,12 +119,11 @@ class API
                     break
                 else
                     puts "AirTable Error:" +  at_response["error"]
+                    break
                 end
-            else
-                puts "Blog data added!"
             end
-
         end
+        puts "Blog data added!"
     end
 
     def update_at(data)
