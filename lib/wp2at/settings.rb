@@ -1,4 +1,4 @@
-require 'yaml'
+require 'pry'
 class Settings
     attr_accessor :username, :base, :headers
     attr_reader :blogs, :at_api
