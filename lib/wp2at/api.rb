@@ -113,7 +113,12 @@ class API
             :body => {:records => slice}.to_json,
             :headers => {"Authorization" => "Bearer #{@current_settings.at_api}", "Content-Type" => "application/json"}
              )
-            at_response
+            case at_response["error"]["type"]
+            when "UNKNOWN_FIELD_NAME"
+                puts "Incorrect table headers. Try renaming #{at_response["error"]["message"]}"
+            else
+                puts "AirTable Error:" +  at_response["error"]
+            end
         end
     end
 
