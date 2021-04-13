@@ -1,8 +1,6 @@
 require 'httparty'
-require 'pry'
 class API
     attr_accessor :routes, :at_latest, :wp_latest, :total
-
 
     @@wp_api = "/wp-json/wp/v2/posts"
     @@at_api = "https://api.airtable.com/v0/"
@@ -113,12 +111,18 @@ class API
             :body => {:records => slice}.to_json,
             :headers => {"Authorization" => "Bearer #{@current_settings.at_api}", "Content-Type" => "application/json"}
              )
-            case at_response["error"]["type"]
-            when "UNKNOWN_FIELD_NAME"
-                puts "Incorrect table headers. Try renaming #{at_response["error"]["message"]}"
+            if at_response["error"]
+                case at_response["error"]["type"]
+                when "UNKNOWN_FIELD_NAME"
+                    puts "Incorrect table header(s). Try renaming #{at_response["error"]["message"].split("name: ")[1]}"
+                    break
+                else
+                    puts "AirTable Error:" +  at_response["error"]
+                end
             else
-                puts "AirTable Error:" +  at_response["error"]
+                puts "Blog data added!"
             end
+
         end
     end
 
