@@ -36,7 +36,6 @@ class API
     end
 
     def collect_post_data
-        ping_wp
         x = 1
         wp_posts = []
         until x > self.total
@@ -69,26 +68,37 @@ class API
     end
 
     def ping_wp
-        resp = HTTParty.get(@@wp_api + "?_fields=id" + "&per_page=100")
-        @wp_latest = resp.parsed_response[0]["id"]
-        @total = resp.headers["x-wp-totalpages"].to_i
+        begin
+            resp = HTTParty.get(@@wp_api + "?_fields=id" + "&per_page=100")
+        rescue
+            false
+        else
+            @wp_latest = resp.parsed_response[0]["id"]
+            @total = resp.headers["x-wp-totalpages"].to_i
+            true
+        end
     end
     def sync(flags)
-        post_data = collect_post_data()
-        rows = collect_row_data
-        new_posts = compare_datasets(rows.keys, post_data[:ids])
-        if new_posts
-            data = prep_data(post_data[:posts].keep_if{|post| new_posts.include? post["id"]})
-            add_to_at(data, @@at_api)  
+        if ping_wp
+            post_data = collect_post_data()
+            rows = collect_row_data
+            new_posts = compare_datasets(rows.keys, post_data[:ids])
+            if new_posts
+                data = prep_data(post_data[:posts].keep_if{|post| new_posts.include? post["id"]})
+                add_to_at(data, @@at_api)  
+            else
+                data = prep_data(post_data[:posts].keep_if{|post| post_data[:ids].include? post["id"]})
+                puts "All data up-to-date"
+            end
         else
-            data = prep_data(post_data[:posts].keep_if{|post| post_data[:ids].include? post["id"]})
-            puts "All data up-to-date"
+            puts "There was an issue. Try correcting your blog's URL"
         end
         
     end
 
     def compare_datasets(at_arr, wp_arr)
         new_posts = wp_arr - at_arr
+        post_data = {:current => at_arr}
         if new_posts.count > 0 
             new_posts
         else
@@ -108,5 +118,6 @@ class API
     end
 
     def update_at(data)
+
     end
 end
