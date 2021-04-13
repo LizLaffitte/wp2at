@@ -3,7 +3,7 @@ class Settings
     attr_accessor :username, :base, :headers
     attr_reader :blogs, :at_api
 
-    def initialize(settingsHash={:username=>"", :at_api=>"", :blogs=>[], :headers=>{:id=>"ID", :title=> "Title"}, :date=>"Date Published", :url=>"URL"})
+    def initialize(settingsHash={:username=>"", :at_api=>"", :blogs=>[], :headers=>{:id=>"ID", :title=> "Title", :date=>"Date Published", :url=>"URL"}})
         @username = settingsHash[:username]
         @blogs = settingsHash[:blogs]
         @at_api = settingsHash[:at_api]
