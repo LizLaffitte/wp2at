@@ -21,8 +21,12 @@ class Wp2at::Option
                 end
                 if @current_settings.at_api != ""
                     blog = @current_settings.blogs.find{|blog| blog.name == options}
-                    api = API.new(@current_settings, blog)
-                    api.sync(flags)
+                    if blog
+                        api = API.new(@current_settings, blog)
+                        api.sync(flags)
+                    else 
+                        puts "Blog not added. Add it by running: `$blog #{options}`"
+                    end
                 else
                     puts "Add an AirTable API Key by running the command api-key and passing an API key."
                 end
