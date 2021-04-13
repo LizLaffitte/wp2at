@@ -5,7 +5,7 @@ class Wp2at::Option
     def execute(args)
         command = args[0]
         options = args[1]
-        flags = args[2]
+        flag = args[2]
         @current_settings = Settings.exists? ? Settings.load : Settings.new
         case command
         when "userconfig"
@@ -23,7 +23,7 @@ class Wp2at::Option
                     blog = @current_settings.blogs.find{|blog| blog.name == options}
                     if blog
                         api = API.new(@current_settings, blog)
-                        api.sync(flags)
+                        api.sync(flag)
                     else 
                         puts "Blog not added. Add it by running: `$blog #{options}`"
                     end
@@ -34,7 +34,18 @@ class Wp2at::Option
                 puts "No blogs added. Try running 'blog' to sync a blog."
             end
         when "headers"
-            puts @current_settings.headers
+            if options && (["id", "title", "date", "url"].include? options )
+                if flag
+                    @current_settings.headers[options.to_sym] = flag
+                else
+                    puts "What would you like to change the #{options} table header to?"
+                    new_header = STDIN.gets.chomp
+                    @current_settings.headers[options.to_sym] = new_header
+                end
+                @current_settings.settings_save
+            else
+                puts @current_settings.headers
+            end
         else
             puts "That's not an option"
         end
