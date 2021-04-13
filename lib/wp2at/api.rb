@@ -20,7 +20,7 @@ class API
         offset = ""
         loop do
             at_response = call_at("",offset)
-            at_response.parsed_response["records"].collect{|post| row_data[post["fields"]["ID"]] = post["id"]}
+            at_response.parsed_response["records"].collect{|post| row_data[post["fields"][@current_settings.headers[:id]]] = post["id"]}
             offset = at_response.parsed_response["offset"]
             break if !at_response.parsed_response["offset"]
         end
@@ -58,7 +58,7 @@ class API
     def prep_data(results)
         records = []
         results.collect do |post|
-            post["ID"] = post.delete("id")
+            post[@current_settings.headers[:id]] = post.delete("id")
             post["Title"] = post["title"].delete("rendered")
             post.delete("title")
             post["Date Published"] = post.delete("date")
