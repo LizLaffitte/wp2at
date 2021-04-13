@@ -18,8 +18,8 @@ class API
         row_data = {}
         offset = ""
         loop do
-            at_response = call_at("",offset)
-            at_response.parsed_response["records"].collect{|post| row_data[post["fields"][@current_settings.headers[:id]]] = post["id"]}
+            at_response = call_at("fields%5B%5D=ID&fields%5B%5D=Last+Modified",offset)
+            at_response.parsed_response["records"].collect{|post| row_data[post["fields"][@current_settings.headers[:id]]] = [post["id"], post["fields"]["Last Modified"]]}
             offset = at_response.parsed_response["offset"]
             break if !at_response.parsed_response["offset"]
         end
@@ -27,7 +27,7 @@ class API
     end
 
     def call_at(params ="", offset="")
-       HTTParty.get(@@at_api + "?" + params + "&offset=" + offset, 
+        HTTParty.get(@@at_api + "?" + params + "&offset=" + offset, 
             :headers => {
                 "Authorization" => "Bearer #{@current_settings.at_api}", 
                 "Content-Type" => "application/json"
@@ -81,12 +81,12 @@ class API
         if ping_wp
             post_data = collect_post_data()
             rows = collect_row_data
-            new_posts = compare_datasets(rows.keys, post_data[:ids])
-            if new_posts
+            all_data = compare_datasets(rows.keys, post_data[:ids])
+            if all_data[:new]
                 data = prep_data(post_data[:posts].keep_if{|post| new_posts.include? post["id"]})
                 add_to_at(data, @@at_api)  
             else
-                data = prep_data(post_data[:posts].keep_if{|post| post_data[:ids].include? post["id"]})
+                binding.pry
                 puts "All data up-to-date"
             end
         else
@@ -99,10 +99,9 @@ class API
         new_posts = wp_arr - at_arr
         post_data = {:current => at_arr}
         if new_posts.count > 0 
-            new_posts
-        else
-            false
+            post_data[:new] = new_posts
         end
+        post_data
     end
 
 
