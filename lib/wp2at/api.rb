@@ -59,10 +59,10 @@ class API
         records = []
         results.collect do |post|
             post[@current_settings.headers[:id]] = post.delete("id")
-            post["Title"] = post["title"].delete("rendered")
+            post[@current_settings.headers[:title]] = post["title"].delete("rendered")
             post.delete("title")
-            post["Date Published"] = post.delete("date")
-            post["URL"] = post.delete("link")
+            post[@current_settings.headers[:date]] = post.delete("date")
+            post[@current_settings.headers[:url]] = post.delete("link")
             records.push({:fields => post})
         end
         records
