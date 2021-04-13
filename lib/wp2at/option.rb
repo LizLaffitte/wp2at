@@ -27,8 +27,10 @@ class Wp2at::Option
                     puts "Add an AirTable API Key by running the command api-key and passing an API key."
                 end
             else
-                puts "Add a blog to be synced"
+                puts "No blogs added. Try running 'blog' to sync a blog."
             end
+        when "headers"
+            puts @current_settings.headers
         else
             puts "That's not an option"
         end

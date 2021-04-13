@@ -1,14 +1,15 @@
 require 'yaml'
 class Settings
-    attr_accessor :username, :base
+    attr_accessor :username, :base, :headers
     attr_reader :blogs, :at_api
 
-    def initialize(settingsHash={:username=>"", :at_api=>"", :blogs=>[], :base=>{}})
+    def initialize(settingsHash={:username=>"", :at_api=>"", :blogs=>[], :headers=>{:id=>"ID", :title=> "Title"}, :date=>"Date Published", :url=>"URL"})
         @username = settingsHash[:username]
         @blogs = settingsHash[:blogs]
         @at_api = settingsHash[:at_api]
         @blog_count = @blogs.count
-        @base = settingsHash[:base]
+        @headers = settingsHash[:headers]
+
     end
 
     def self.exists?
@@ -25,7 +26,7 @@ class Settings
 
     def settings_save
         settings = {
-	        username: self.username, at_api: self.at_api, blogs: self.blogs, base: self.base
+	        username: self.username, at_api: self.at_api, blogs: self.blogs, headers: self.headers
         }
         File.open("wp2at_config.yml", "w"){|file| file.write(settings.to_yaml)}
     end

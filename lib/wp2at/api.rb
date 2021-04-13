@@ -82,7 +82,6 @@ class API
             add_to_at(data, @@at_api)  
         else
             data = prep_data(post_data[:posts].keep_if{|post| post_data[:ids].include? post["id"]})
-            # binding.pry
             puts "All data up-to-date"
         end
         
