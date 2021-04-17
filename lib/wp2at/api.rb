@@ -15,16 +15,12 @@ class API
 
 
     def collect_row_data(post_hash)
-        row_data = {}
         offset = ""
         loop do
             at_response = call_at("fields%5B%5D=ID&fields%5B%5D=Last+Modified",offset)
-            
             at_response.parsed_response["records"].collect do |post| 
                 post_hash[post["fields"][@current_settings.headers[:id]]]["at"] =  [post["id"], post["fields"]["Last Modified"]]
-                row_data[post["fields"][@current_settings.headers[:id]]] = [post["id"], post["fields"]["Last Modified"]]
             end
-            
             offset = at_response.parsed_response["offset"]
             break if !at_response.parsed_response["offset"]
         end
@@ -61,7 +57,7 @@ class API
         return string.gsub(" ","%20")
     end
 
-    def prep_data(results)
+    def prep_data(results, updates=false)
         records = []
         results.collect do |id, post|
             post[@current_settings.headers[:id]] = post.delete("id")
@@ -70,8 +66,16 @@ class API
             post[@current_settings.headers[:date]] = post.delete("date")
             post[@current_settings.headers[:url]] = post.delete("link")
             post.delete("modified")
-            records.push({:fields => post})
+            if updates
+                id = post["at"].shift()
+                post.delete("at")
+                records.push({:id=> id,:fields => post})
+            else
+                records.push({:fields => post})
+            end
+            
         end
+
         records
     end
 
@@ -93,9 +97,12 @@ class API
             if results[:new].count > 0
                 data = prep_data(results[:new])
                 add_to_at(data, @@at_api)  
-            # else
-      
-            #     puts "All data up-to-date"
+            else
+                puts "No new posts."
+            end
+            if results[:current].count > 0
+               data = prep_data(results[:current], true)
+               update_at(data, @@at_api)
             end
         else
             puts "There was an issue. Try correcting your blog's URL"
@@ -107,9 +114,10 @@ class API
         split_posts = all_data.partition{|k,v| v.has_key?("at")}.map(&:to_h)
         all_posts = {
             :new=> split_posts[1],
-            :update=> split_posts[0]
+            :current=> split_posts[0]
         }
     end
+
 
     def add_to_at(data, at_route)
         data.each_slice(10) do |slice| 
@@ -131,7 +139,24 @@ class API
         puts "Blog data added!"
     end
 
-    def update_at(data)
+    def update_at(data, at_route)
+        data.each_slice(10) do |slice| 
+            at_response = HTTParty.patch(at_route, 
+            :body => {:records => slice}.to_json,
+            :headers => {"Authorization" => "Bearer #{@current_settings.at_api}", "Content-Type" => "application/json"}
+             )
+            if at_response["error"]
+                case at_response["error"]["type"]
+                when "UNKNOWN_FIELD_NAME"
+                    puts "Incorrect table header(s). Try renaming #{at_response["error"]["message"].split("name: ")[1]}"
+                    break
+                else
+                    puts "AirTable Error:" +  at_response["error"]
+                    break
+                end
+            end
+        end
+        puts "Blog data updated!"
 
     end
 end
