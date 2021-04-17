@@ -14,16 +14,21 @@ class API
     end
 
 
-    def collect_row_data
+    def collect_row_data(post_hash)
         row_data = {}
         offset = ""
         loop do
             at_response = call_at("fields%5B%5D=ID&fields%5B%5D=Last+Modified",offset)
-            at_response.parsed_response["records"].collect{|post| row_data[post["fields"][@current_settings.headers[:id]]] = [post["id"], post["fields"]["Last Modified"]]}
+            
+            at_response.parsed_response["records"].collect do |post| 
+                post_hash[post["fields"][@current_settings.headers[:id]]]["at"] =  [post["id"], post["fields"]["Last Modified"]]
+                row_data[post["fields"][@current_settings.headers[:id]]] = [post["id"], post["fields"]["Last Modified"]]
+            end
+            
             offset = at_response.parsed_response["offset"]
             break if !at_response.parsed_response["offset"]
         end
-        row_data
+        post_hash
     end
 
     def call_at(params ="", offset="")
@@ -43,10 +48,13 @@ class API
             total = resp.headers["x-wp-totalpages"].to_i
             x += 1
         end
-        post_data = {
-            :posts => wp_posts.flatten,
-            :ids => wp_posts.flatten.collect{|post| post["id"]}
-        }       
+        format_post_data(wp_posts)
+    end
+
+    def format_post_data(wp_data)
+        post_data = {}
+        wp_data.flatten.each{|post| post_data[post["id"]] = post }
+        post_data
     end
     
     def replace_space(string)
@@ -55,7 +63,7 @@ class API
 
     def prep_data(results)
         records = []
-        results.collect do |post|
+        results.collect do |id, post|
             post[@current_settings.headers[:id]] = post.delete("id")
             post[@current_settings.headers[:title]] = post["title"].delete("rendered")
             post.delete("title")
@@ -65,7 +73,6 @@ class API
             records.push({:fields => post})
         end
         records
-
     end
 
     def ping_wp
@@ -81,14 +88,14 @@ class API
     def sync(flags)
         if ping_wp
             post_data = collect_post_data()
-            at_data = collect_row_data
-            all_data = compare_datasets(at_data, post_data)
-            if all_data[:new].count > 0
-                data = prep_data(post_data[:posts].keep_if{|post| all_data[:new].include? post["id"]})
+            all_data = collect_row_data(post_data)
+            results = compare_datasets(all_data)
+            if results[:new].count > 0
+                data = prep_data(results[:new])
                 add_to_at(data, @@at_api)  
-            else
+            # else
       
-                puts "All data up-to-date"
+            #     puts "All data up-to-date"
             end
         else
             puts "There was an issue. Try correcting your blog's URL"
@@ -96,17 +103,12 @@ class API
         
     end
 
-    def compare_datasets(at_data, wp_data)
-        # to_update = find_updates(wp_data, at_data)
+    def compare_datasets(all_data)
+        split_posts = all_data.partition{|k,v| v.has_key?("at")}.map(&:to_h)
         all_posts = {
-            :new=> at_data.keys - wp_data[:ids],
-            # :update=> to_update
+            :new=> split_posts[1],
+            :update=> split_posts[0]
         }
-    end
-
-    def find_updates(wp_data, at_data)
-        
-        binding.pry
     end
 
     def add_to_at(data, at_route)
