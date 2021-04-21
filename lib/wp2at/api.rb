@@ -17,9 +17,9 @@ class API
     def collect_row_data(post_hash)
         offset = ""
         loop do
-            at_response = call_at("fields%5B%5D=ID&fields%5B%5D=Last+Modified",offset)
+            at_response = call_at("fields%5B%5D=#{@current_settings.headers[:id]}",offset)
             at_response.parsed_response["records"].collect do |post| 
-                post_hash[post["fields"][@current_settings.headers[:id]]]["at"] =  [post["id"], post["fields"]["Last Modified"]]
+                post_hash[post["fields"][@current_settings.headers[:id]]]["at"] =  post["id"]
             end
             offset = at_response.parsed_response["offset"]
             break if !at_response.parsed_response["offset"]
@@ -39,7 +39,7 @@ class API
         x = 1
         wp_posts = []
         until x > self.total
-            resp = HTTParty.get(@@wp_api + "?_fields=id,title,date,link,modified" + "&per_page=100&page=" + x.to_s)
+            resp = HTTParty.get(@@wp_api + "?_fields=id,title,date,link" + "&per_page=100&page=" + x.to_s)
             wp_posts.push(resp.parsed_response)
             total = resp.headers["x-wp-totalpages"].to_i
             x += 1
@@ -65,9 +65,8 @@ class API
             post.delete("title")
             post[@current_settings.headers[:date]] = post.delete("date")
             post[@current_settings.headers[:url]] = post.delete("link")
-            post.delete("modified")
             if updates
-                id = post["at"].shift()
+                id = post["at"]
                 post.delete("at")
                 records.push({:id=> id,:fields => post})
             else
