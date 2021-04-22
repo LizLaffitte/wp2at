@@ -1,5 +1,4 @@
 require 'httparty'
-require 'pry'
 class API
     attr_accessor :routes, :at_latest, :total
 
