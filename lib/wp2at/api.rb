@@ -5,6 +5,7 @@ class API
 
     @@wp_api = "/wp-json/wp/v2/posts"
     @@at_api = "https://api.airtable.com/v0/"
+    @@yoast=",yoast_head"
 
     def initialize(settings, blog, flags="")
         @current_settings = settings
@@ -39,7 +40,7 @@ class API
         x = 1
         wp_posts = []
         until x > self.total
-            resp = HTTParty.get(@@wp_api + "?_fields=id,title,date,link" + "&per_page=100&page=" + x.to_s)
+            resp = HTTParty.get(@@wp_api + "?_fields=id,title,date,link,yoast_head" + "&per_page=100&page=" + x.to_s)
             wp_posts.push(resp.parsed_response)
             total = resp.headers["x-wp-totalpages"].to_i
             x += 1
@@ -91,6 +92,7 @@ class API
     def sync(flags)
         if ping_wp
             post_data = collect_post_data()
+            binding.pry
             all_data = collect_row_data(post_data)
             results = compare_datasets(all_data)
             if results[:new].count > 0
