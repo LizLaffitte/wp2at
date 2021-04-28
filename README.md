@@ -46,7 +46,9 @@ Your settings are saved in a local file(wp2at_config.yml).
 
 To change AirTable column names, run  --headers COLUMN-TO-CHANGE
 e.g.
+```
 ./bin/wp2at headers id
+```
 
 ## Contributing
 
