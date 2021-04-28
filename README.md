@@ -1,8 +1,8 @@
-# Wp2at
+# WP2AT
+A Ruby gem built to help WordPress bloggers keep track of their posts in AirTable.
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/wp2at`. To experiment with that code, run `bin/console` for an interactive prompt.
+You enter your WordPress website URL and AirTable data (base name, base ID, table name, API key), and the gem syncs your WordPress blog data (ID, post title, date published, URL) in the specified table.
 
-TODO: Delete this and the text above, and describe your gem
 
 ## Installation
 
@@ -21,18 +21,36 @@ Or install it yourself as:
     $ gem install wp2at
 
 ## Usage
+Unless you've added the gem to your path, all commands are prefaced with ./bin/wp2at and must be run from within the gem's directory. 
 
-TODO: Write usage instructions here
+### Commands
+To add a username:          --userconfig 
 
-## Development
+To add a WordPress blog:    --blog BLOG NAME
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+To add an AirTable API key: --apikey YOUR-API-KEY
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+To syn your blog post data: --sync BLOG NAME
+
+To change AirTable column names: --headers COLUMN-TO-CHANGE
+
+Your settings are saved in a local file(wp2at_config.yml).
+
+
+ The gem will look for the following table column names and field types:
+
+ID  -- number (integer)
+Title -- text
+Date -- date
+URL -- url
+
+To change AirTable column names, run  --headers COLUMN-TO-CHANGE
+e.g.
+./bin/wp2at headers id
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/wp2at. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/wp2at/blob/master/CODE_OF_CONDUCT.md).
+Bug reports and pull requests are welcome on GitHub at https://github.com/lizlaffitte/wp2at. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/lizlaffitte/wp2at/blob/master/CODE_OF_CONDUCT.md).
 
 ## License
 
@@ -40,4 +58,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the Wp2at project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/wp2at/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the Wp2at project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/lizlaffitte/wp2at/blob/master/CODE_OF_CONDUCT.md).

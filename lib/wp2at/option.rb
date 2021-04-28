@@ -48,6 +48,7 @@ class Wp2at::Option
             end
         else
             puts "That's not an option"
+            puts "\nTo add a username:               --userconfig \n\nTo add a WordPress blog:         --blog BLOG NAME\n\nTo add an AirTable API key:      --apikey YOUR-API-KEY\n\nTo syn your blog post data:      --sync BLOG NAME\n\nTo change AirTable column names: --headers COLUMN-TO-CHANGE"
         end
     
     end
