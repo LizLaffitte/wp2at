@@ -39,10 +39,10 @@ Your settings are saved in a local file(wp2at_config.yml).
 
  The gem will look for the following table column names and field types:
 
-ID  -- number (integer)
-Title -- text
-Date -- date
-URL -- url
+* ID  -- number (integer)
+* Title -- text
+* Date -- date
+* URL -- url
 
 To change AirTable column names, run  --headers COLUMN-TO-CHANGE
 e.g.
