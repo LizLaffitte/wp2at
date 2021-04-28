@@ -17,12 +17,15 @@ class API
     def collect_row_data(post_hash)
         offset = ""
         loop do
-            at_response = call_at(code(["fields[]", @cs.headers[:id]], ["filterByFormula", "NOT({Post ID} = '')"]),offset)
-            binding.pry
-            at_response.parsed_response["records"].collect do |post| 
-                post_hash[post["fields"][@cs.headers[:id]]]["at"] =  post["id"]
+            at_response = call_at(code(["fields[]", @cs.headers[:id]], ["filterByFormula", "NOT({#{@cs.headers[:id]}} = '')"]),offset)
+            if  at_response.parsed_response["records"]
+                at_response.parsed_response["records"].collect do |post| 
+                    post_hash[post["fields"][@cs.headers[:id]]]["at"] =  post["id"]
+                end
+                offset = at_response.parsed_response["offset"]
+            elsif at_response.parsed_response["error"]
+                puts  at_response.parsed_response["error"]["message"]
             end
-            offset = at_response.parsed_response["offset"]
             break if !at_response.parsed_response["offset"]
         end
         post_hash
